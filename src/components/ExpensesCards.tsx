@@ -1,8 +1,10 @@
 import axios from "axios";
 import { useEffect, useState, useContext } from "react";
 import { userContext } from "../Context/UserContext";
-import { IconTrash, IconPencil } from "@tabler/icons-react";
 import IncomeForm from "./IncomeForm";
+import TableHistoryExpense from "./TableHistoryExpnse";
+import IncomeTable from "./IncomeTable";
+import { ExpenseUser, IncomeUser } from "../types";
 
 type ExpenseProp = {
   title: string;
@@ -24,6 +26,7 @@ function ExpensesCards({ title }: ExpenseProp) {
   });
 
   const [expenses, setExpenses] = useState<expenseUser[]>([]);
+  const [incomes, setIncomes] = useState<IncomeUser[]>([]);
 
   const context = useContext(userContext);
   const user = context?.user;
@@ -33,7 +36,7 @@ function ExpensesCards({ title }: ExpenseProp) {
       const getExpenses = async () => {
         try {
           const response = await axios.get(
-            `http://localhost:3000/api/getexpenses/user/${user.id}`
+            `http://localhost:5432/api/getexpenses/user/${user.id}`
           );
           console.log(response.data);
           setExpenses(response.data.gastos);
@@ -41,7 +44,20 @@ function ExpensesCards({ title }: ExpenseProp) {
           console.log(error);
         }
       };
+      const getIncomes = async () => {
+        try {
+          const response = await axios.get(
+            `http://localhost:5432/api/getincome/income/${user.id}`
+          );
+          console.log(response);
+          setIncomes(response.data.incomes);
+        } catch (error) {
+          console.log(error);
+        }
+      };
+      getIncomes();
       getExpenses();
+
       setCreateExpenses((prevExpenses) => ({
         ...prevExpenses,
         usuarioId: user.id,
@@ -68,7 +84,7 @@ function ExpensesCards({ title }: ExpenseProp) {
     if (title === "Expenses") {
       try {
         const response = await axios.post(
-          "http://localhost:3000/api/expenses/expense",
+          "http://localhost:5432/api/expenses/expense",
           expensesToSend
         );
         console.log(response.data);
@@ -85,6 +101,30 @@ function ExpensesCards({ title }: ExpenseProp) {
         console.log(error);
       }
     }
+  };
+
+  const handleIncomeUpdate = (newIncome: IncomeUser) => {
+    setIncomes((prevIncomes) => [...prevIncomes, newIncome]);
+  };
+
+  const handleDeleteIncome = (id: number) => {
+    setIncomes((preveIncome) =>
+      preveIncome.filter((expense) => expense.id !== id)
+    );
+  };
+
+  const handleDeleteExpense = (id: number) => {
+    setExpenses((prevExpenses) =>
+      prevExpenses.filter((expense) => expense.id !== id)
+    );
+  };
+
+  const handleEditExpense = (updatedExpense: ExpenseUser) => {
+    setExpenses((preveExpenses) =>
+      preveExpenses.map((expense) =>
+        expense.id === updatedExpense.id ? updatedExpense : expense
+      )
+    );
   };
 
   return (
@@ -134,7 +174,7 @@ function ExpensesCards({ title }: ExpenseProp) {
           </form>
         </section>
       ) : (
-        <IncomeForm />
+        <IncomeForm func={handleIncomeUpdate} />
       )}
       <section className="flex flex-col bg-[#1F2937] rounded-lg p-10 text-white gap-10 col-span-3 row-span-3 max-h-[383px]">
         <h3
@@ -156,43 +196,15 @@ function ExpensesCards({ title }: ExpenseProp) {
         >
           {title} History
         </h3>
-        <div className="">
-          <table className="min-w-full text-white rounded-lg p-4 overflow-x-hidden overflow-y-hidden">
-            <thead>
-              <tr>
-                <th className="py-2 px-4 border-b text-left font-bold">
-                  Category
-                </th>
-                <th className="py-2 px-4 border-b  text-left font-bold">
-                  Amount
-                </th>
-                <th className="py-2 px-4 border-b  text-left font-bold">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {expenses.map((expense) => (
-                <tr key={expense.id}>
-                  <td className="py-2 px-4 text-left hover:bg-[#27272A] transition-colors">
-                    {expense.motivoGasto}
-                  </td>
-                  <td className="py-2 px-4 text-left hover:bg-[#27272A] transition-colors">
-                    {expense.gastoNum}
-                  </td>
-                  <div className="flex gap-4">
-                    <td className="py-2 px-4 text-left cursor-pointer">
-                      {<IconTrash color="red" />}
-                    </td>
-                    <td className="py-2 px-4 text-left cursor-pointer">
-                      {<IconPencil />}
-                    </td>
-                  </div>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        {title === "Expenses" ? (
+          <TableHistoryExpense
+            dataUser={expenses}
+            onDelete={handleDeleteExpense}
+            onEdit={handleEditExpense}
+          />
+        ) : (
+          <IncomeTable data={incomes} onDelete={handleDeleteIncome} />
+        )}
       </section>
     </div>
   );

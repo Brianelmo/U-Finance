@@ -2,11 +2,15 @@ import React, { useEffect, useState, useContext } from "react";
 import axios from "axios";
 import { userContext } from "../Context/UserContext";
 
-function IncomeForm() {
+interface IncomeProps {
+  func: (newIncome: incomUser) => void;
+}
+
+function IncomeForm({func}:IncomeProps) {
   const [CreateIncome, setCreateIncome] = useState({
-    motivoIngreso: "",
+    motivoEntrada: "",
     usuarioId: 0,
-    ingresoNum: 0,
+    entradaNum: 0,
   });
 
   const context = useContext(userContext);
@@ -31,19 +35,24 @@ function IncomeForm() {
 
   const incomeToSend = {
     ...CreateIncome,
-    ingresoNum: parseFloat(CreateIncome.ingresoNum.toString()),
+    entradaNum: parseFloat(CreateIncome.entradaNum.toString()),
   };
 
   const handleIncome = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
       const response = await axios.post(
-        "http://localhost:3000/api/incomes/createincome",
+        "http://localhost:5432/api/incomes/createincome",
         incomeToSend
       );
       console.log(response.data);
       console.log(incomeToSend);
       console.log(CreateIncome);
+      func({
+        ...incomeToSend,
+        id:response.data.id,
+        fechaEntrada:response.data.fechaEntrada
+      })
     } catch (error) {
       console.log(error);
     }
@@ -54,7 +63,7 @@ function IncomeForm() {
       <h3 className="text-2xl font-bold text-[#4CAF50]">Add Income</h3>
       <form onSubmit={handleIncome} className="flex flex-col gap-10" action="">
         <div className="flex flex-col">
-          <label className="font-bold" htmlFor="motivoIngreso">
+          <label className="font-bold" htmlFor="motiovoEntrada">
             Source
           </label>
           <input
@@ -62,13 +71,13 @@ function IncomeForm() {
             type="text"
             placeholder="e.g, Salary"
             onChange={handleChange}
-            value={CreateIncome.motivoIngreso}
-            name="motivoIngreso"
-            id="motivoIngreso"
+            value={CreateIncome.motivoEntrada}
+            name="motivoEntrada"
+            id="motivoEntrada"
           />
         </div>
         <div className="flex flex-col">
-          <label className="font-bold" htmlFor="ingresoNum">
+          <label className="font-bold" htmlFor="entradaNum">
             Amount
           </label>
           <input
@@ -76,9 +85,9 @@ function IncomeForm() {
             type="number"
             placeholder="0.00"
             onChange={handleChange}
-            value={CreateIncome.ingresoNum}
-            name="ingresoNum"
-            id="ingresoNum"
+            value={CreateIncome.entradaNum}
+            name="entradaNum"
+            id="entradaNum"
           />
         </div>
         <button

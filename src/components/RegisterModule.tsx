@@ -2,6 +2,8 @@ import { useState } from "react";
 import axios from "axios";
 import FormLogin from "./FormLogin";
 import { IconX } from "@tabler/icons-react";
+import { useContext } from "react";
+import { userContext } from "../Context/UserContext";
 type Props = {
   func: () => void;
 };
@@ -13,6 +15,8 @@ function RegisterModule({ func }: Props) {
     password: "",
   });
   const [loged, setLoged] = useState(true);
+  const context = useContext(userContext);
+  const user = context?.user;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormadata({
@@ -25,7 +29,7 @@ function RegisterModule({ func }: Props) {
     e.preventDefault();
     try {
       const response = await axios.post(
-        "http://localhost:3000/api/register/registro",
+        "http://localhost:5432/api/register/registro",
         formadata
       );
       console.log(response);
@@ -37,11 +41,15 @@ function RegisterModule({ func }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center gap-10 bg-opacity-50 z-10 backdrop-blur-sm">
+    <div
+      className={`fixed inset-0 flex flex-col items-center justify-center gap-10 bg-opacity-50 z-10 backdrop-blur-sm ${
+        user ? "invisible" : ""
+      }`}
+    >
       <div className="flex flex-col items-center gap-10 bg-[#1F2937] w-[640px] h-[600px] py-5 px-20 rounded-md shadow-2xl">
         <div className="relative cursor-pointer" onClick={func}>
           <div className="absolute left-65 w-10 h-10 bg-[#111827] rounded-full hover:bg-[#364153] transition-colors ">
-            <IconX color="white" size={40}/>
+            <IconX color="white" size={40} />
           </div>
         </div>
 
@@ -109,7 +117,9 @@ function RegisterModule({ func }: Props) {
               do you already have an account? click here
             </p>
           </form>
-        ): <FormLogin/>}
+        ) : (
+          <FormLogin />
+        )}
       </div>
     </div>
   );

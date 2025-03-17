@@ -7,6 +7,8 @@ function FormLogin() {
     password: "",
     email: "",
   });
+  
+  const [view, setView] = useState(true);
 
   const userContextValue = useContext(userContext);
   if (!userContextValue) {
@@ -25,11 +27,14 @@ function FormLogin() {
     e.preventDefault();
     try {
       const response = await axios.post(
-        "http://localhost:3000/api/login/userlogin",
+        "http://localhost:5432/api/login/userlogin",
         formData
       );
       console.log(response.data.Valido);
       setUser(response.data.Valido);
+      if(response.data){
+        setView(false);
+      }
     } catch (error) {
       console.log(error);
     }
@@ -39,7 +44,8 @@ function FormLogin() {
 
   return (
     <div className="w-full">
-      <form
+      {view ? (
+        <form
         className="flex flex-col items-center justify-center gap-10 w-full"
         onSubmit={handleLogin}
         action=""
@@ -77,6 +83,7 @@ function FormLogin() {
           Sign In
         </button>
       </form>
+      ): ''}
     </div>
   );
 }
